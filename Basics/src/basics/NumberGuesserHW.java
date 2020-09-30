@@ -33,8 +33,10 @@ public class NumberGuesserHW {
 		System.out.println("That's right!");
 		level++;// level up!
 		strikes = 0;
+		augmentMaxStrikes();
 		saveLevel();
 		System.out.println("Welcome to level " + level);
+		System.out.println("You now have " + (maxStrikes) + " strikes.");
 		number = getNumber(level);
 	}
 
@@ -46,6 +48,7 @@ public class NumberGuesserHW {
 		if (level < 1) {
 			level = 1;
 		}
+		augmentMaxStrikes();
 		saveLevel();
 		number = getNumber(level);
 	}
@@ -137,15 +140,20 @@ public class NumberGuesserHW {
 
 	void run() {
 		try (Scanner input = new Scanner(System.in);) {
-			System.out.println("Welcome to Number Guesser 4.0!");
-			System.out.println("I'll ask you to guess a number between a range, and you'll have " + maxStrikes
-					+ " attempts to guess.");
 			if (loadLevel()) {
-				System.out.println("Successfully loaded level " + level + " let's continue then");
+				System.out.println("Welcome to Number Guesser 4.0!");
+				augmentMaxStrikes();
+				System.out.println("I'll ask you to guess a number between a range, and you'll have " + (maxStrikes)
+						+ " attempts to guess.");
+				System.out.println("Successfully loaded level " + level + " let's continue then! You currently have " + (maxStrikes - strikes) + " strikes left");
 			}
 			else {
+				System.out.println("Welcome to Number Guesser 4.0!");
+				System.out.println("I'll ask you to guess a number between a range, and you'll have " + (maxStrikes)
+						+ " attempts to guess.");
 				number = getNumber(level);
 			}
+			
 			isRunning = true;
 			while (input.hasNext()) {
 				String message = input.nextLine();
@@ -166,5 +174,20 @@ public class NumberGuesserHW {
 	public static void main(String[] args) {
 		NumberGuesserHW guesser = new NumberGuesserHW();
 		guesser.run();
+	}
+	
+	public void augmentMaxStrikes() {
+		if (level % 4 == 0) {
+			maxStrikes = 5 + (level / 4);
+		}
+		else if (level % 4 == 1) {
+			maxStrikes = 5 + ((level - 1) / 4);
+		}
+		else if (level % 4 == 2) {
+			maxStrikes = 5 + ((level - 2) / 4);
+		}
+		else if (level % 4 == 3) {
+			maxStrikes = 5 + ((level - 3) / 4);
+		}
 	}
 }
