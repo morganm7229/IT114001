@@ -1,4 +1,5 @@
-package basics;
+package server;
+
 
 import java.io.Serializable;
 
