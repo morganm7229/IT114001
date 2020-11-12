@@ -1,15 +1,16 @@
 package server;
 
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import basics.Debug;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Room implements AutoCloseable {
     private static SocketServer server;// used to refer to accessible server functions
     private String name;
+    private final static Logger log = Logger.getLogger(Room.class.getName());
+
 
     // Commands
     private final static String COMMAND_TRIGGER = "/";
@@ -33,12 +34,28 @@ public class Room implements AutoCloseable {
     protected synchronized void addClient(ServerThread client) {
 	client.setCurrentRoom(this);
 	if (clients.indexOf(client) > -1) {
-	    Debug.log("Attempting to add a client that already exists");
+
+	    log.log(Level.INFO, "Attempting to add a client that already exists");
+
 	}
 	else {
 	    clients.add(client);
 	    if (client.getClientName() != null) {
-		sendMessage(client, "joined the room " + getName());
+
+		client.sendClearList();
+		sendConnectionStatus(client, true, "joined the room " + getName());
+		updateClientList(client);
+	    }
+	}
+    }
+
+    private void updateClientList(ServerThread client) {
+	Iterator<ServerThread> iter = clients.iterator();
+	while (iter.hasNext()) {
+	    ServerThread c = iter.next();
+	    if (c != client) {
+		boolean messageSent = client.sendConnectionStatus(c.getClientName(), true, null);
+
 	    }
 	}
     }
@@ -46,7 +63,10 @@ public class Room implements AutoCloseable {
     protected synchronized void removeClient(ServerThread client) {
 	clients.remove(client);
 	if (clients.size() > 0) {
-	    sendMessage(client, "left the room");
+
+	    // sendMessage(client, "left the room");
+	    sendConnectionStatus(client, false, "left the room " + getName());
+
 	}
 	else {
 	    cleanupEmptyRoom();
@@ -59,7 +79,9 @@ public class Room implements AutoCloseable {
 	    return;
 	}
 	try {
-	    Debug.log("Closing empty room: " + name);
+
+	    log.log(Level.INFO, "Closing empty room: " + name);
+
 	    close();
 	}
 	catch (Exception e) {
@@ -88,7 +110,9 @@ public class Room implements AutoCloseable {
 	try {
 	    if (message.indexOf(COMMAND_TRIGGER) > -1) {
 		String[] comm = message.split(COMMAND_TRIGGER);
-		Debug.log(message);
+
+		log.log(Level.INFO, message);
+
 		String part1 = comm[1];
 		String[] comm2 = part1.split(" ");
 		String command = comm2[0];
@@ -118,14 +142,17 @@ public class Room implements AutoCloseable {
 	return wasCommand;
     }
 
-    protected void sendConnectionStatus(String clientName, boolean isConnect) {
+
+    // TODO changed from string to ServerThread
+    protected void sendConnectionStatus(ServerThread client, boolean isConnect, String message) {
 	Iterator<ServerThread> iter = clients.iterator();
 	while (iter.hasNext()) {
-	    ServerThread client = iter.next();
-	    boolean messageSent = client.sendConnectionStatus(clientName, isConnect);
+	    ServerThread c = iter.next();
+	    boolean messageSent = c.sendConnectionStatus(client.getClientName(), isConnect, message);
 	    if (!messageSent) {
 		iter.remove();
-		Debug.log("Removed client " + client.getId());
+		log.log(Level.INFO, "Removed client " + c.getId());
+
 	    }
 	}
     }
@@ -139,7 +166,9 @@ public class Room implements AutoCloseable {
      * @param message The message to broadcast inside the room
      */
     protected void sendMessage(ServerThread sender, String message) {
-	Debug.log(getName() + ": Sending message to " + clients.size() + " clients");
+
+	log.log(Level.INFO, getName() + ": Sending message to " + clients.size() + " clients");
+
 	if (processCommands(message, sender)) {
 	    // it was a command, don't broadcast
 	    return;
@@ -150,7 +179,9 @@ public class Room implements AutoCloseable {
 	    boolean messageSent = client.send(sender.getClientName(), message);
 	    if (!messageSent) {
 		iter.remove();
-		Debug.log("Removed client " + client.getId());
+
+		log.log(Level.INFO, "Removed client " + client.getId());
+
 	    }
 	}
     }
@@ -163,7 +194,9 @@ public class Room implements AutoCloseable {
     public void close() throws Exception {
 	int clientCount = clients.size();
 	if (clientCount > 0) {
-	    Debug.log("Migrating " + clients.size() + " to Lobby");
+
+	    log.log(Level.INFO, "Migrating " + clients.size() + " to Lobby");
+
 	    Iterator<ServerThread> iter = clients.iterator();
 	    Room lobby = server.getLobby();
 	    while (iter.hasNext()) {
@@ -171,10 +204,13 @@ public class Room implements AutoCloseable {
 		lobby.addClient(client);
 		iter.remove();
 	    }
-	    Debug.log("Done Migrating " + clientCount + " to Lobby");
+
+	    log.log(Level.INFO, "Done Migrating " + clients.size() + " to Lobby");
+
 	}
 	server.cleanupRoom(this);
 	name = null;
 	// should be eligible for garbage collection now
     }
+
 }
