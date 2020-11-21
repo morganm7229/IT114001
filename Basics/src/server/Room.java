@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.Random;
 
 public class Room implements AutoCloseable {
     private static SocketServer server;// used to refer to accessible server functions
@@ -16,6 +17,9 @@ public class Room implements AutoCloseable {
     private final static String COMMAND_TRIGGER = "/";
     private final static String CREATE_ROOM = "createroom";
     private final static String JOIN_ROOM = "joinroom";
+    private final static String FLIP = "flip";
+    private final static String ROLL = "roll";
+    private Random rng = new Random();
 
     public Room(String name) {
 	this.name = name;
@@ -32,32 +36,32 @@ public class Room implements AutoCloseable {
     private List<ServerThread> clients = new ArrayList<ServerThread>();
 
     protected synchronized void addClient(ServerThread client) {
-	client.setCurrentRoom(this);
-	if (clients.indexOf(client) > -1) {
-
-	    log.log(Level.INFO, "Attempting to add a client that already exists");
-
-	}
-	else {
-	    clients.add(client);
-	    if (client.getClientName() != null) {
-
-		client.sendClearList();
-		sendConnectionStatus(client, true, "joined the room " + getName());
-		updateClientList(client);
-	    }
-	}
+		client.setCurrentRoom(this);
+		if (clients.indexOf(client) > -1) {
+	
+		    log.log(Level.INFO, "Attempting to add a client that already exists");
+	
+		}
+		else {
+		    clients.add(client);
+		    if (client.getClientName() != null) {
+	
+				client.sendClearList();
+				sendConnectionStatus(client, true, "joined the room " + getName());
+				updateClientList(client);
+		    }
+		}
     }
 
     private void updateClientList(ServerThread client) {
-	Iterator<ServerThread> iter = clients.iterator();
-	while (iter.hasNext()) {
-	    ServerThread c = iter.next();
-	    if (c != client) {
-		boolean messageSent = client.sendConnectionStatus(c.getClientName(), true, null);
-
-	    }
-	}
+		Iterator<ServerThread> iter = clients.iterator();
+		while (iter.hasNext()) {
+		    ServerThread c = iter.next();
+		    if (c != client) {
+		    	boolean messageSent = client.sendConnectionStatus(c.getClientName(), true, null);
+	
+		    }
+		}
     }
 
     protected synchronized void removeClient(ServerThread client) {
@@ -106,40 +110,67 @@ public class Room implements AutoCloseable {
      *                triggering the actions)
      */
     private boolean processCommands(String message, ServerThread client) {
-	boolean wasCommand = false;
-	try {
-	    if (message.indexOf(COMMAND_TRIGGER) > -1) {
-		String[] comm = message.split(COMMAND_TRIGGER);
-
-		log.log(Level.INFO, message);
-
-		String part1 = comm[1];
-		String[] comm2 = part1.split(" ");
-		String command = comm2[0];
-		if (command != null) {
-		    command = command.toLowerCase();
-		}
-		String roomName;
-		switch (command) {
-		case CREATE_ROOM:
-		    roomName = comm2[1];
-		    if (server.createNewRoom(roomName)) {
-			joinRoom(roomName, client);
+		boolean wasCommand = false;
+		try {
+			    if (message.indexOf(COMMAND_TRIGGER) > -1) {
+					String[] comm = message.split(COMMAND_TRIGGER);
+			
+					log.log(Level.INFO, message);
+			
+					String part1 = comm[1];
+					String[] comm2 = part1.split(" ");
+					String command = comm2[0];
+					if (command != null) {
+					    command = command.toLowerCase();
+				}
+				String roomName;
+				switch (command) {
+					case CREATE_ROOM:
+					    roomName = comm2[1];
+					    if (server.createNewRoom(roomName)) {
+					    	joinRoom(roomName, client);
+					    }
+					    wasCommand = true;
+					    break;
+					case JOIN_ROOM:
+					    roomName = comm2[1];
+					    joinRoom(roomName, client);
+					    wasCommand = true;
+					    break;
+					case FLIP:
+						boolean flipBool = false;
+						int flipInt = rng.nextInt(2);
+						if (flipInt == 1) {
+							flipBool = true;
+						}
+						Iterator<ServerThread> iter = clients.iterator();
+						if (flipBool) {
+							message = "Heads!";
+						}
+						else {
+							message = "Tails!";
+						}
+						while (iter.hasNext()) {
+						    ServerThread clientList = iter.next();
+						    boolean messageSent = clientList.send("Server", message);
+						}
+						break;
+					case ROLL:
+						int rollInt = rng.nextInt(6) + 1;
+						message = "You rolled a " + rollInt;
+						Iterator<ServerThread> iter1 = clients.iterator();
+						while (iter1.hasNext()) {
+						    ServerThread clientList = iter1.next();
+						    boolean messageSent = clientList.send("Server", message);
+						}
+						break;
+				}
 		    }
-		    wasCommand = true;
-		    break;
-		case JOIN_ROOM:
-		    roomName = comm2[1];
-		    joinRoom(roomName, client);
-		    wasCommand = true;
-		    break;
 		}
-	    }
-	}
-	catch (Exception e) {
-	    e.printStackTrace();
-	}
-	return wasCommand;
+		catch (Exception e) {
+		    e.printStackTrace();
+		}
+		return wasCommand;
     }
 
 
@@ -167,23 +198,23 @@ public class Room implements AutoCloseable {
      */
     protected void sendMessage(ServerThread sender, String message) {
 
-	log.log(Level.INFO, getName() + ": Sending message to " + clients.size() + " clients");
-
-	if (processCommands(message, sender)) {
-	    // it was a command, don't broadcast
-	    return;
-	}
-	Iterator<ServerThread> iter = clients.iterator();
-	while (iter.hasNext()) {
-	    ServerThread client = iter.next();
-	    boolean messageSent = client.send(sender.getClientName(), message);
-	    if (!messageSent) {
-		iter.remove();
-
-		log.log(Level.INFO, "Removed client " + client.getId());
-
-	    }
-	}
+		log.log(Level.INFO, getName() + ": Sending message to " + clients.size() + " clients");
+	
+			if (processCommands(message, sender)) {
+		    // it was a command, don't broadcast
+				return;
+			}
+		Iterator<ServerThread> iter = clients.iterator();
+		while (iter.hasNext()) {
+		    ServerThread client = iter.next();
+		    boolean messageSent = client.send(sender.getClientName(), message);
+		    if (!messageSent) {
+		    	iter.remove();
+	
+		    	log.log(Level.INFO, "Removed client " + client.getId());
+	
+		    }
+		}
     }
 
     /***
