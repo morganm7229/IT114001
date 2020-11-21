@@ -27,6 +27,7 @@ public class ServerThread extends Thread {
     protected synchronized Room getCurrentRoom() {
 	return currentRoom;
     }
+    
 
     protected synchronized void setCurrentRoom(Room room) {
 	if (room != null) {
@@ -77,27 +78,27 @@ public class ServerThread extends Thread {
      * @return
      */
     protected boolean send(String clientName, String message) {
-	Payload payload = new Payload();
-	payload.setPayloadType(PayloadType.MESSAGE);
-	payload.setClientName(clientName);
-	payload.setMessage(message);
-
-	return sendPayload(payload);
+		Payload payload = new Payload();
+		payload.setPayloadType(PayloadType.MESSAGE);
+		payload.setClientName(clientName);
+		payload.setMessage(message);
+	
+		return sendPayload(payload);
     }
 
     protected boolean sendConnectionStatus(String clientName, boolean isConnect, String message) {
-	Payload payload = new Payload();
-	if (isConnect) {
-	    payload.setPayloadType(PayloadType.CONNECT);
-	    payload.setMessage(message);
-	}
-	else {
-	    payload.setPayloadType(PayloadType.DISCONNECT);
-	    payload.setMessage(message);
-
-	}
-	payload.setClientName(clientName);
-	return sendPayload(payload);
+		Payload payload = new Payload();
+		if (isConnect) {
+		    payload.setPayloadType(PayloadType.CONNECT);
+		    payload.setMessage(message);
+		}
+		else {
+		    payload.setPayloadType(PayloadType.DISCONNECT);
+		    payload.setMessage(message);
+	
+		}
+		payload.setClientName(clientName);
+		return sendPayload(payload);
     }
 
 
