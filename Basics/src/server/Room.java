@@ -145,24 +145,26 @@ public class Room implements AutoCloseable {
 						}
 						Iterator<ServerThread> iter = clients.iterator();
 						if (flipBool) {
-							message = "Heads!";
+							message = client.getClientName() + " flipped &Heads!&";
 						}
 						else {
-							message = "Tails!";
+							message = client.getClientName() + " flipped &Tails!&";
 						}
 						while (iter.hasNext()) {
 						    ServerThread clientList = iter.next();
 						    boolean messageSent = clientList.send("Server", message);
 						}
+						wasCommand = true;
 						break;
 					case ROLL:
 						int rollInt = rng.nextInt(6) + 1;
-						message = "You rolled a " + rollInt;
+						message = client.getClientName() + " rolled a &" + rollInt + "& ";
 						Iterator<ServerThread> iter1 = clients.iterator();
 						while (iter1.hasNext()) {
 						    ServerThread clientList = iter1.next();
 						    boolean messageSent = clientList.send("Server", message);
 						}
+						wasCommand = true;
 						break;
 				}
 		    }

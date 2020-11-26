@@ -212,21 +212,77 @@ public class ClientUI extends JFrame implements Event {
     }
 
     void addMessage(String str) {
-	JEditorPane entry = new JEditorPane();
-	entry.setEditable(false);
-	// entry.setLayout(null);
-	entry.setText(str);
-	Dimension d = new Dimension(textArea.getSize().width, calcHeightForText(str));
-	// attempt to lock all dimensions
-	entry.setMinimumSize(d);
-	entry.setPreferredSize(d);
-	entry.setMaximumSize(d);
-	textArea.add(entry);
-
-	pack();
-	System.out.println(entry.getSize());
-	JScrollBar sb = ((JScrollPane) textArea.getParent().getParent()).getVerticalScrollBar();
-	sb.setValue(sb.getMaximum());
+		JEditorPane entry = new JEditorPane();
+		entry.setEditable(false);
+		// entry.setLayout(null);
+		str += " ";
+		for (int i = 0; i < str.length(); i++) {
+			if (str.charAt(i) == '&') {
+				if (str.charAt(i + 1) == ' ') {
+					str = str.replaceFirst("& ", "</b> ");
+					entry.setContentType("text/html");
+				}
+			}
+		}
+		for (int i = 0; i < str.length(); i++) {
+			if (str.charAt(i) == '&') {
+					str = str.replaceFirst("&", "<b>");
+					entry.setContentType("text/html");
+			}
+		}
+		for (int i = 0; i < str.length(); i++) {
+			if (str.charAt(i) == '#') {
+				if (str.charAt(i + 1) == ' ') {
+					str = str.replaceFirst("# ", "</i> ");
+					entry.setContentType("text/html");
+				}
+			}
+		}
+		for (int i = 0; i < str.length(); i++) {
+			if (str.charAt(i) == '#') {
+					str = str.replaceFirst("#", "<i>");
+					entry.setContentType("text/html");
+			}
+		}
+		for (int i = 0; i < str.length(); i++) {
+			if (str.charAt(i) == '_') {
+				if (str.charAt(i + 1) == ' ') {
+					str = str.replaceFirst("_ ", "</u> ");
+					entry.setContentType("text/html");
+				}
+			}
+		}
+		for (int i = 0; i < str.length(); i++) {
+			if (str.charAt(i) == '_') {
+					str = str.replaceFirst("_", "<u>");
+					entry.setContentType("text/html");
+			}
+		}
+		for (int i = 0; i < str.length(); i++) {
+			if (str.charAt(i) == '%') {
+				if (str.charAt(i + 1) == ' ') {
+					str = str.replaceFirst("% ", "(color will eventually go here) ");
+				}
+			}
+		}
+		for (int i = 0; i < str.length(); i++) {
+			if (str.charAt(i) == '%') {
+					str = str.replaceFirst("%", "(color will eventually go here)");
+			}
+		}
+		entry.setText(str);
+		Dimension d = new Dimension(textArea.getSize().width, calcHeightForText(str));
+		// attempt to lock all dimensions
+		entry.setMinimumSize(d);
+		entry.setPreferredSize(d);
+		entry.setMaximumSize(d);
+		
+		textArea.add(entry);
+	
+		pack();
+		System.out.println(entry.getSize());
+		JScrollBar sb = ((JScrollPane) textArea.getParent().getParent()).getVerticalScrollBar();
+		sb.setValue(sb.getMaximum());
     }
 
     void next() {
@@ -293,9 +349,14 @@ public class ClientUI extends JFrame implements Event {
     }
 
     public static void main(String[] args) {
-	ClientUI ui = new ClientUI("My UI");
-	if (ui != null) {
-	    log.log(Level.FINE, "Started");
-	}
+		ClientUI ui = new ClientUI("My UI");
+		if (ui != null) {
+		    log.log(Level.FINE, "Started");
+		}
+    }
+    
+    public String processMessage(String str) {
+    	
+		return str;
     }
 }
