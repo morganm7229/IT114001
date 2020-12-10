@@ -254,20 +254,22 @@ public class ClientUI extends JFrame implements Event {
 		}
 		for (int i = 0; i < str.length(); i++) {
 			if (str.charAt(i) == '_') {
-					str = str.replaceFirst("_", "<u>");
-					entry.setContentType("text/html");
+				str = str.replaceFirst("_", "<u>");
+				entry.setContentType("text/html");
 			}
 		}
 		for (int i = 0; i < str.length(); i++) {
 			if (str.charAt(i) == '%') {
 				if (str.charAt(i + 1) == ' ') {
-					str = str.replaceFirst("% ", "(color will eventually go here) ");
+					str = str.replaceFirst("% ", "</font> ");
+					entry.setContentType("text/html");
 				}
 			}
 		}
 		for (int i = 0; i < str.length(); i++) {
 			if (str.charAt(i) == '%') {
-					str = str.replaceFirst("%", "(color will eventually go here)");
+					str = str.replaceFirst("%", "<font style=color:red>");
+					entry.setContentType("text/html");
 			}
 		}
 		entry.setText(str);
