@@ -21,6 +21,7 @@ public class Room implements AutoCloseable {
 	private final static String MUTE = "mute";
 	private final static String UNMUTE = "unmute";
 	private final static String WHISPER = "whisper";
+	private final static String COLOR = "color";
 	private Random rng = new Random();
 
 	public Room(String name) {
@@ -166,23 +167,27 @@ public class Room implements AutoCloseable {
 					break;
 				case MUTE:
 					message = message.replace("/mute ", "");
-					client.addMuted(message);
-					/*
-					 * ArrayList<String> clientMuted = client.getMuted(); for (int i = 0; i <
-					 * clientMuted.size(); i++) { message = message + ";" + clientMuted.get(i); }
-					 * Iterator<ServerThread> iter2 = clients.iterator(); while (iter2.hasNext()) {
-					 * ServerThread clientList = iter2.next(); boolean messageSent =
-					 * clientList.send("Server", message); }
-					 */
+					if (!client.checkMuted(message)) {
+						client.addMuted(message);
+						muteMessage(client, message);
+					}
 					wasCommand = true;
 					break;
 				case UNMUTE:
 					message = message.replace("/unmute ", "");
-					client.removeMuted(message);
+					if (client.checkMuted(message)) {
+						client.removeMuted(message);
+						unmuteMessage(client, message);
+					}
 					wasCommand = true;
 					break;
 				case WHISPER:
 					sendPrivateMessage(client, message);
+					wasCommand = true;
+					break;
+				case COLOR:
+					message = message.replace("/color ", "~");
+					colorMessage(client, message);
 					wasCommand = true;
 					break;
 				}
@@ -316,6 +321,54 @@ public class Room implements AutoCloseable {
 		server.cleanupRoom(this);
 		name = null;
 		// should be eligible for garbage collection now
+	}
+	
+	public void muteMessage(ServerThread sender, String message) {
+		Iterator<ServerThread> iter = clients.iterator();
+		while (iter.hasNext()) {
+			ServerThread client = iter.next();
+			if (client.getClientName().equals(message)) {
+				boolean messageSent = client.send("Server", sender.getClientName() + " has muted you.");
+				if (!messageSent) {
+					iter.remove();
+
+					log.log(Level.INFO, "Removed client " + client.getId());
+
+				}
+			}
+		}
+	}
+	
+	public void unmuteMessage(ServerThread sender, String message) {
+		Iterator<ServerThread> iter = clients.iterator();
+		while (iter.hasNext()) {
+			ServerThread client = iter.next();
+			if (client.getClientName().equals(message)) {
+				boolean messageSent = client.send("Server", sender.getClientName() + " has unmuted you.");
+				if (!messageSent) {
+					iter.remove();
+
+					log.log(Level.INFO, "Removed client " + client.getId());
+
+				}
+			}
+		}
+	}
+	
+	public void colorMessage(ServerThread sender, String message) {
+		Iterator<ServerThread> iter = clients.iterator();
+		while (iter.hasNext()) {
+			ServerThread client = iter.next();
+			if (client.getClientName().equals(sender.getClientName())) {
+				boolean messageSent = client.send(sender.getClientName(), message);
+				if (!messageSent) {
+					iter.remove();
+
+					log.log(Level.INFO, "Removed client " + client.getId());
+
+				}
+			}
+		}
 	}
 
 }
