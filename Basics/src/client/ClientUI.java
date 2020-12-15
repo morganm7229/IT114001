@@ -2,6 +2,7 @@ package client;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FontMetrics;
@@ -35,7 +36,9 @@ public class ClientUI extends JFrame implements Event {
 	private static final long serialVersionUID = 1L;
 	CardLayout card;
 	ClientUI self;
+	String userToColor;
 	JPanel textArea;
+	String originalStr;
 	JPanel userPanel;
 	List<User> users = new ArrayList<User>();
 	private final static Logger log = Logger.getLogger(ClientUI.class.getName());
@@ -269,6 +272,78 @@ public class ClientUI extends JFrame implements Event {
 			if (str.charAt(i) == '%') {
 				str = str.replaceFirst("%", "<font style=color:red>");
 				entry.setContentType("text/html");
+			}
+		}
+		for (int i = 0; i < str.length(); i++) {
+			if (str.charAt(i) == '~') {
+				originalStr = str.replace("~", "/color ");
+				str = str.replace("~", "");
+				userToColor = "";
+				for (i = i; i < str.length(); i++) {
+					if (str.charAt(i) == ' ') {
+						System.out.println(userToColor);
+						break;
+					} else {
+						userToColor = userToColor + str.charAt(i);
+					}
+				}
+				str = str.replace(userToColor + " ", "");
+				String strTwo = "";
+				for (int j = 0; j < str.length(); j++) {
+					if (str.charAt(j) == ':') {
+						for (int k = j + 2; k < str.length(); k++) {
+							if (str.charAt(k) == ' ') {
+								break;
+							}
+							else {
+								strTwo = strTwo + str.charAt(k);
+							}
+						}
+					}
+				}
+				str = originalStr;
+				Iterator<User> iter = users.iterator();
+				while (iter.hasNext()) {
+					User u = iter.next();
+					if (u.getName().equals(userToColor)) {
+						System.out.println(userToColor);
+						System.out.println(strTwo);
+						System.out.println("Hi");
+						if (strTwo.toLowerCase().equals("blue")) {
+							u.setBackground(Color.blue);
+						}
+						if (strTwo.toLowerCase().equals("black")) {
+							u.setBackground(Color.black);
+						}
+						if (strTwo.toLowerCase().equals("green")) {
+							u.setBackground(Color.green);
+						}
+						if (strTwo.toLowerCase().equals("red")) {
+							u.setBackground(Color.red);
+						}
+						if (strTwo.toLowerCase().equals("yellow")) {
+							u.setBackground(Color.yellow);
+						}
+						if (strTwo.toLowerCase().equals("pink")) {
+							u.setBackground(Color.pink);
+						}
+						if (strTwo.toLowerCase().equals("gray")) {
+							u.setBackground(Color.gray);
+						}
+						if (strTwo.toLowerCase().equals("purple")) {
+							u.setBackground(Color.magenta);
+						}
+						if (strTwo.toLowerCase().equals("orange")) {
+							u.setBackground(Color.orange);
+						}
+						if (strTwo.toLowerCase().equals("white")) {
+							u.setBackground(Color.white);
+						}
+						if (strTwo.toLowerCase().equals("cyan")) {
+							u.setBackground(Color.CYAN);
+						}
+					}
+				}
 			}
 		}
 		entry.setText(str);
