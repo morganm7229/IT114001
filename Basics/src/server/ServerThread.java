@@ -1,6 +1,7 @@
 package server;
 
 import java.io.IOException;
+import java.util.Scanner;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -25,6 +26,10 @@ public class ServerThread extends Thread {
 
 	public ArrayList getMuted() {
 		return muted;
+	}
+	
+	public void setMuted(ArrayList<String> change) {
+		muted = change;
 	}
 
 	public void addMuted(String toAdd) {

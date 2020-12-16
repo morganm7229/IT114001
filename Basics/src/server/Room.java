@@ -1,11 +1,13 @@
 package server;
 
 import java.util.ArrayList;
+import java.io.*;
 import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Random;
+import java.util.Scanner;
 
 public class Room implements AutoCloseable {
 	private static SocketServer server;// used to refer to accessible server functions
@@ -22,6 +24,7 @@ public class Room implements AutoCloseable {
 	private final static String UNMUTE = "unmute";
 	private final static String WHISPER = "whisper";
 	private final static String COLOR = "color";
+	private final static String EXPORT = "export";
 	private Random rng = new Random();
 
 	public Room(String name) {
@@ -51,6 +54,22 @@ public class Room implements AutoCloseable {
 				client.sendClearList();
 				sendConnectionStatus(client, true, "joined the room " + getName());
 				updateClientList(client);
+				File file = new File(client.getClientName() + ".txt");
+				if (file.exists()) {
+					ArrayList<String> tempMuted = new ArrayList<String>();
+					try (Scanner reader = new Scanner(file)) {
+						while (reader.hasNextLine()) {
+							tempMuted.add(reader.nextLine());
+						}
+						client.setMuted(tempMuted);
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+						return;
+					} catch (Exception e2) {
+						e2.printStackTrace();
+						return;
+					}
+				}
 			}
 		}
 	}
@@ -170,6 +189,16 @@ public class Room implements AutoCloseable {
 					if (!client.checkMuted(message)) {
 						client.addMuted(message);
 						muteMessage(client, message);
+						File file = new File(client.getClientName() + ".txt");
+						ArrayList<String> tempMuted = new ArrayList<String>();
+						try (FileWriter fw = new FileWriter(client.getClientName() + ".txt")) {
+							tempMuted = client.getMuted();
+							for (int i = 0; i < tempMuted.size(); i++) {
+								fw.write(tempMuted.get(i) + "\n");
+							}
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 					}
 					wasCommand = true;
 					break;
@@ -178,6 +207,16 @@ public class Room implements AutoCloseable {
 					if (client.checkMuted(message)) {
 						client.removeMuted(message);
 						unmuteMessage(client, message);
+						File file = new File(client.getClientName() + ".txt");
+						ArrayList<String> tempMuted = new ArrayList<String>();
+						try (FileWriter fw = new FileWriter(client.getClientName() + ".txt")) {
+							tempMuted = client.getMuted();
+							for (int i = 0; i < tempMuted.size(); i++) {
+								fw.write(tempMuted.get(i) + "\n");
+							}
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
 					}
 					wasCommand = true;
 					break;
@@ -188,6 +227,11 @@ public class Room implements AutoCloseable {
 				case COLOR:
 					message = message.replace("/color ", "~");
 					colorMessage(client, message);
+					wasCommand = true;
+					break;
+				case EXPORT:
+					message = message.replace("/export ", "`");
+					client.send(client.getClientName(), message);
 					wasCommand = true;
 					break;
 				}
@@ -233,7 +277,8 @@ public class Room implements AutoCloseable {
 			ServerThread client = iter.next();
 			if (client.checkMuted(sender.getClientName()) == false) {
 				boolean messageSent = client.send(sender.getClientName(), message);
-				//client.send(sender.getClientName(), "~" + sender.getClientName() + " lightgray");
+				// client.send(sender.getClientName(), "~" + sender.getClientName() + "
+				// lightgray");
 				if (!messageSent) {
 					iter.remove();
 
@@ -251,7 +296,7 @@ public class Room implements AutoCloseable {
 		dmed.add(sender.getClientName());
 		message = message + " ";
 		if (message.indexOf("@") == -1) {
-			
+
 			return;
 		}
 		String tempString = "";
@@ -323,7 +368,7 @@ public class Room implements AutoCloseable {
 		name = null;
 		// should be eligible for garbage collection now
 	}
-	
+
 	public void muteMessage(ServerThread sender, String message) {
 		Iterator<ServerThread> iter = clients.iterator();
 		while (iter.hasNext()) {
@@ -340,7 +385,7 @@ public class Room implements AutoCloseable {
 			}
 		}
 	}
-	
+
 	public void unmuteMessage(ServerThread sender, String message) {
 		Iterator<ServerThread> iter = clients.iterator();
 		while (iter.hasNext()) {
@@ -357,7 +402,7 @@ public class Room implements AutoCloseable {
 			}
 		}
 	}
-	
+
 	public void colorMessage(ServerThread sender, String message) {
 		Iterator<ServerThread> iter = clients.iterator();
 		while (iter.hasNext()) {
