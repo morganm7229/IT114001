@@ -9,6 +9,8 @@ import java.awt.FontMetrics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -41,7 +43,9 @@ public class ClientUI extends JFrame implements Event {
 	String originalStr;
 	JPanel userPanel;
 	boolean checkColor = false;
+	boolean checkExport = false;
 	List<User> users = new ArrayList<User>();
+	ArrayList<String> messages = new ArrayList<String>();
 	private final static Logger log = Logger.getLogger(ClientUI.class.getName());
 	Dimension windowSize = new Dimension(400, 400);
 
@@ -362,6 +366,21 @@ public class ClientUI extends JFrame implements Event {
 					}
 				}
 			}
+			if (str.charAt(i) == '`') {
+				checkExport = true;
+				String exportFileName = "";
+				str = str.replace("`", "");
+				exportFileName = "";
+				for (i = i; i < str.length(); i++) {
+					if (str.charAt(i) == ' ') {
+						System.out.println(exportFileName);
+						break;
+					} else {
+						exportFileName = exportFileName + str.charAt(i);
+					}
+				}
+				exportText(exportFileName);
+			}
 		}
 		entry.setText(str);
 		Dimension d = new Dimension(textArea.getSize().width, calcHeightForText(str));
@@ -369,10 +388,12 @@ public class ClientUI extends JFrame implements Event {
 		entry.setMinimumSize(d);
 		entry.setPreferredSize(d);
 		entry.setMaximumSize(d);
-		if (!checkColor) {
+		if (!checkColor && !checkExport) {
 			textArea.add(entry);
+			messages.add(str);
 		}
 		checkColor = false;
+		checkExport = false;
 		pack();
 		System.out.println(entry.getSize());
 		JScrollBar sb = ((JScrollPane) textArea.getParent().getParent()).getVerticalScrollBar();
@@ -452,5 +473,16 @@ public class ClientUI extends JFrame implements Event {
 	public String processMessage(String str) {
 
 		return str;
+	}
+	
+	public void exportText(String fileName) {
+		File file = new File(fileName);
+		try (FileWriter fw = new FileWriter(fileName + ".txt")) {
+			for (int i = 0; i < messages.size(); i++) {
+				fw.write(messages.get(i) + "\n");
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
