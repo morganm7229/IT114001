@@ -233,6 +233,7 @@ public class Room implements AutoCloseable {
 			ServerThread client = iter.next();
 			if (client.checkMuted(sender.getClientName()) == false) {
 				boolean messageSent = client.send(sender.getClientName(), message);
+				//client.send(sender.getClientName(), "~" + sender.getClientName() + " lightgray");
 				if (!messageSent) {
 					iter.remove();
 
@@ -329,6 +330,7 @@ public class Room implements AutoCloseable {
 			ServerThread client = iter.next();
 			if (client.getClientName().equals(message)) {
 				boolean messageSent = client.send("Server", sender.getClientName() + " has muted you.");
+				sendMessage(sender, "/color " + client.getClientName() + " gray");
 				if (!messageSent) {
 					iter.remove();
 
@@ -345,6 +347,7 @@ public class Room implements AutoCloseable {
 			ServerThread client = iter.next();
 			if (client.getClientName().equals(message)) {
 				boolean messageSent = client.send("Server", sender.getClientName() + " has unmuted you.");
+				sendMessage(sender, "/color " + client.getClientName() + " white");
 				if (!messageSent) {
 					iter.remove();
 

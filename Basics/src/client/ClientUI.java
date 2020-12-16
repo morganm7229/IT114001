@@ -40,6 +40,7 @@ public class ClientUI extends JFrame implements Event {
 	JPanel textArea;
 	String originalStr;
 	JPanel userPanel;
+	boolean checkColor = false;
 	List<User> users = new ArrayList<User>();
 	private final static Logger log = Logger.getLogger(ClientUI.class.getName());
 	Dimension windowSize = new Dimension(400, 400);
@@ -179,6 +180,7 @@ public class ClientUI extends JFrame implements Event {
 		u.setPreferredSize(p);
 		u.setMinimumSize(p);
 		u.setMaximumSize(p);
+		u.setBackground(Color.white);
 		userPanel.add(u);
 		users.add(u);
 		pack();
@@ -311,36 +313,51 @@ public class ClientUI extends JFrame implements Event {
 						System.out.println("Hi");
 						if (strTwo.toLowerCase().equals("blue")) {
 							u.setBackground(Color.blue);
+							checkColor = true;
 						}
 						if (strTwo.toLowerCase().equals("black")) {
 							u.setBackground(Color.black);
+							checkColor = true;
 						}
 						if (strTwo.toLowerCase().equals("green")) {
 							u.setBackground(Color.green);
+							checkColor = true;
 						}
 						if (strTwo.toLowerCase().equals("red")) {
 							u.setBackground(Color.red);
+							checkColor = true;
 						}
 						if (strTwo.toLowerCase().equals("yellow")) {
 							u.setBackground(Color.yellow);
+							checkColor = true;
 						}
 						if (strTwo.toLowerCase().equals("pink")) {
 							u.setBackground(Color.pink);
+							checkColor = true;
 						}
 						if (strTwo.toLowerCase().equals("gray")) {
 							u.setBackground(Color.gray);
+							checkColor = true;
 						}
 						if (strTwo.toLowerCase().equals("purple")) {
 							u.setBackground(Color.magenta);
+							checkColor = true;
 						}
 						if (strTwo.toLowerCase().equals("orange")) {
 							u.setBackground(Color.orange);
+							checkColor = true;
 						}
 						if (strTwo.toLowerCase().equals("white")) {
 							u.setBackground(Color.white);
+							checkColor = true;
 						}
 						if (strTwo.toLowerCase().equals("cyan")) {
 							u.setBackground(Color.CYAN);
+							checkColor = true;
+						}
+						if (strTwo.toLowerCase().equals("lightgray")) {
+							u.setBackground(Color.LIGHT_GRAY);
+							checkColor = true;
 						}
 					}
 				}
@@ -352,9 +369,10 @@ public class ClientUI extends JFrame implements Event {
 		entry.setMinimumSize(d);
 		entry.setPreferredSize(d);
 		entry.setMaximumSize(d);
-
-		textArea.add(entry);
-
+		if (!checkColor) {
+			textArea.add(entry);
+		}
+		checkColor = false;
 		pack();
 		System.out.println(entry.getSize());
 		JScrollBar sb = ((JScrollPane) textArea.getParent().getParent()).getVerticalScrollBar();
