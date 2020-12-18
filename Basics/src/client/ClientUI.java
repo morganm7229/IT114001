@@ -283,6 +283,7 @@ public class ClientUI extends JFrame implements Event {
 		for (int i = 0; i < str.length(); i++) {
 			if (str.charAt(i) == '~') {
 				originalStr = str.replace("~", "/color ");
+				checkColor = true;
 				str = str.replace("~", "");
 				userToColor = "";
 				for (i = i; i < str.length(); i++) {
