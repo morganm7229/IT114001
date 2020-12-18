@@ -48,6 +48,7 @@ public class Room implements AutoCloseable {
 			log.log(Level.INFO, "Attempting to add a client that already exists");
 
 		} else {
+			String newUser;
 			clients.add(client);
 			if (client.getClientName() != null) {
 
@@ -59,7 +60,10 @@ public class Room implements AutoCloseable {
 					ArrayList<String> tempMuted = new ArrayList<String>();
 					try (Scanner reader = new Scanner(file)) {
 						while (reader.hasNextLine()) {
-							tempMuted.add(reader.nextLine());
+							newUser = reader.nextLine();
+							tempMuted.add(newUser);
+							sendMessage(client, "/color " + newUser + " gray");
+							
 						}
 						client.setMuted(tempMuted);
 					} catch (FileNotFoundException e) {
@@ -416,6 +420,36 @@ public class Room implements AutoCloseable {
 
 				}
 			}
+		}
+	}
+	
+	public void disconnectRequest(String dis) {
+		Iterator<ServerThread> iter = clients.iterator();
+		while (iter.hasNext()) {
+			ServerThread client = iter.next();
+			if (client.getClientName().equals(dis)) {
+				client.send("Server", "You have been forcefully diconnected");
+				removeClient(client);
+				client.kill();
+			}
+		}
+	}
+	
+	public String returnUserList() {
+		String returnString = "";
+		Iterator<ServerThread> iter = clients.iterator();
+		while (iter.hasNext()) {
+			ServerThread client = iter.next();
+			returnString = returnString + client.getClientName() + ", ";
+		}
+		return returnString;
+	}
+	
+	public void closeMessage() {
+		Iterator<ServerThread> iter = clients.iterator();
+		while (iter.hasNext()) {
+			ServerThread client = iter.next();
+			client.send("Server", "Server has closed. You may exit.");
 		}
 	}
 

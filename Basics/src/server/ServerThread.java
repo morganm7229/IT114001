@@ -268,4 +268,9 @@ public class ServerThread extends Thread {
 			}
 		}
 	}
+	
+	public void kill() {
+		cleanup();
+		isRunning = false;
+	}
 }
